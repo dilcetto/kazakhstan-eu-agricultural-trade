@@ -14,6 +14,14 @@ The analysis examines:
 
 The results are descriptive. They identify patterns and questions for further research but do not establish causal effects.
 
+## Key Findings
+
+- Export value peaked in 2022 at approximately USD 301 million.
+- Linseed and wheat dominate the selected agricultural export basket.
+- Belgium and Italy dominate the observed EU destination markets.
+
+![Annual export value from 2018 to 2024](outputs/figures/annual_export_value.png)
+
 ## Repository structure
 
 ```text
