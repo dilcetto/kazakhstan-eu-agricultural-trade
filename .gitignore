@@ -2,6 +2,7 @@
 .venv/
 
 # Python cache
+**pycache**/
 __pycache__/
 *.py[cod]
 

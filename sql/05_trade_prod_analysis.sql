@@ -1,8 +1,4 @@
--- ======================================================
--- Kazakhstan–EU Agricultural Trade
--- Trade and Production Analysis
--- ======================================================
-
+-- Kazakhstan–EU Agricultural Trade: Trade and Production Analysis
 
 CREATE OR REPLACE VIEW trade AS
 SELECT *
@@ -12,12 +8,8 @@ CREATE OR REPLACE VIEW production AS
 SELECT *
 FROM read_parquet('data/processed/prepared_production_data.parquet');
 
-
--- ======================================================
--- 1. JOIN PRODUCTION WITH EU EXPORTS
--- Question: How do domestic production and EU exports
--- compare for each commodity and year?
--- ======================================================
+-- 1. Join production with EU exports
+-- How do domestic production and EU exports compare by commodity and year?
 
 WITH annual_exports AS (
     SELECT
@@ -28,28 +20,22 @@ WITH annual_exports AS (
     FROM trade
     GROUP BY item, year
 )
-
 SELECT
-    p.item,
-    p.year,
-    p.production,
-    p.area_harvested,
-    p.yield,
-    e.eu_export_quantity,
-    e.eu_export_value
-FROM production AS p
+    production.item,
+    production.year,
+    production.production,
+    production.area_harvested,
+    production.yield,
+    annual_exports.eu_export_quantity,
+    annual_exports.eu_export_value
+FROM production
+LEFT JOIN annual_exports
+    ON production.item = annual_exports.item
+    AND production.year = annual_exports.year
+ORDER BY production.item, production.year;
 
-LEFT JOIN annual_exports AS e
-    ON p.item = e.item
-    AND p.year = e.year
-
-ORDER BY p.item, p.year;
-
--- ======================================================
--- 2. EU EXPORT QUANTITY AS SHARE OF PRODUCTION
--- Question: What share of Kazakhstan's domestic production 
--- was represented by exports to observed EU partner markets?
--- ======================================================
+-- 2. EU export quantity as a share of production
+-- What share of production was exported to the observed EU markets?
 
 WITH annual_exports AS (
     SELECT
@@ -59,35 +45,27 @@ WITH annual_exports AS (
     FROM trade
     GROUP BY item, year
 )
-
 SELECT
-    p.item,
-    p.year,
-    p.production,
-    COALESCE(e.eu_export_quantity, 0) AS eu_export_quantity,
-
+    production.item,
+    production.year,
+    production.production,
+    COALESCE(annual_exports.eu_export_quantity, 0) AS eu_export_quantity,
     ROUND(
-        100.0 * COALESCE(e.eu_export_quantity, 0)
-        / NULLIF(p.production, 0),
+        100.0 * COALESCE(annual_exports.eu_export_quantity, 0)
+        / NULLIF(production.production, 0),
         2
     ) AS eu_export_share_of_production_pct
-
-FROM production AS p
-
-LEFT JOIN annual_exports AS e
-    ON p.item = e.item
-    AND p.year = e.year
-
-WHERE p.item NOT IN (
+FROM production
+LEFT JOIN annual_exports
+    ON production.item = annual_exports.item
+    AND production.year = annual_exports.year
+WHERE production.item NOT IN (
     'Rapeseed or canola oil, crude',
     'Sunflower-seed oil, crude'
 )
+ORDER BY production.item, production.year;
 
-ORDER BY p.item, p.year;
-
--- ======================================================
--- 3. WHEAT AND LINSEED: PRODUCTION VS EU EXPORTS
--- ======================================================
+-- 3. Wheat and linseed: production vs EU exports
 
 WITH annual_exports AS (
     SELECT
@@ -98,37 +76,28 @@ WITH annual_exports AS (
     FROM trade
     GROUP BY item, year
 )
-
 SELECT
-    p.year,
-    p.item,
-    p.production,
-    p.area_harvested,
-    p.yield,
-    COALESCE(e.eu_export_quantity, 0) AS eu_export_quantity,
-    COALESCE(e.eu_export_value, 0) AS eu_export_value,
-
+    production.year,
+    production.item,
+    production.production,
+    production.area_harvested,
+    production.yield,
+    COALESCE(annual_exports.eu_export_quantity, 0) AS eu_export_quantity,
+    COALESCE(annual_exports.eu_export_value, 0) AS eu_export_value,
     ROUND(
-        100.0 * COALESCE(e.eu_export_quantity, 0)
-        / NULLIF(p.production, 0),
+        100.0 * COALESCE(annual_exports.eu_export_quantity, 0)
+        / NULLIF(production.production, 0),
         2
     ) AS eu_export_share_of_production_pct
+FROM production
+LEFT JOIN annual_exports
+    ON production.item = annual_exports.item
+    AND production.year = annual_exports.year
+WHERE production.item IN ('Wheat', 'Linseed')
+ORDER BY production.item, production.year;
 
-FROM production AS p
-
-LEFT JOIN annual_exports AS e
-    ON p.item = e.item
-    AND p.year = e.year
-
-WHERE p.item IN ('Wheat', 'Linseed')
-
-ORDER BY p.item, p.year;
-
--- ======================================================
--- 4. PRODUCTION GROWTH VS EU EXPORT-QUANTITY GROWTH
--- Question: Do production and EU export quantities generally
--- move in the same direction?
--- ======================================================
+-- 4. Production growth vs EU export-quantity growth
+-- Do production and EU export quantities move in the same direction?
 
 WITH annual_exports AS (
     SELECT
@@ -138,58 +107,46 @@ WITH annual_exports AS (
     FROM trade
     GROUP BY item, year
 ),
-
 combined AS (
     SELECT
-        p.item,
-        p.year,
-        p.production,
-        COALESCE(e.eu_export_quantity, 0) AS eu_export_quantity
-    FROM production AS p
-
-    LEFT JOIN annual_exports AS e
-        ON p.item = e.item
-        AND p.year = e.year
-
-    WHERE p.item IN ('Wheat', 'Linseed')
+        production.item,
+        production.year,
+        production.production,
+        COALESCE(annual_exports.eu_export_quantity, 0) AS eu_export_quantity
+    FROM production
+    LEFT JOIN annual_exports
+        ON production.item = annual_exports.item
+        AND production.year = annual_exports.year
+    WHERE production.item IN ('Wheat', 'Linseed')
 ),
-
 changes AS (
     SELECT
         item,
         year,
         production,
         eu_export_quantity,
-
         LAG(production) OVER (
             PARTITION BY item
             ORDER BY year
         ) AS previous_production,
-
         LAG(eu_export_quantity) OVER (
             PARTITION BY item
             ORDER BY year
         ) AS previous_export_quantity
-
     FROM combined
 )
-
 SELECT
     item,
     year,
-
     ROUND(
         100.0 * (production - previous_production)
         / NULLIF(previous_production, 0),
         2
     ) AS production_change_pct,
-
     ROUND(
         100.0 * (eu_export_quantity - previous_export_quantity)
         / NULLIF(previous_export_quantity, 0),
         2
     ) AS eu_export_quantity_change_pct
-
 FROM changes
-
 ORDER BY item, year;
