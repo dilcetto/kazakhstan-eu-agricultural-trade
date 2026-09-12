@@ -99,3 +99,12 @@ Running the helper without an argument executes `sql/05_trade_prod_analysis.sql`
 - No project-specific records are removed during the initial cleaning stage.
 
 See [`docs/findings.md`](docs/findings.md) for the current descriptive findings.
+
+## License
+
+The code and original documentation in this repository are licensed under the
+MIT License. See [LICENSE](LICENSE) for details.
+
+This project uses data obtained from FAOSTAT. The underlying FAOSTAT datasets
+are not covered by this repository's MIT License and remain subject to the
+terms and licensing conditions of their original provider.
