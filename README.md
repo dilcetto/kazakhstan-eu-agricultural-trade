@@ -22,6 +22,20 @@ The results are descriptive. They identify patterns and questions for further re
 
 ![Annual export value from 2018 to 2024](outputs/figures/annual_export_value.png)
 
+## Interactive Dashboard
+
+[Explore the interactive dashboard on Tableau Public](https://public.tableau.com/app/profile/dana.rabandiyar/viz/trade_analysis/TradeDashboard?publish=yes).
+
+[![Kazakhstan–EU agricultural trade Tableau dashboard](outputs/figures/tableau_dashboard.png)](https://public.tableau.com/app/profile/dana.rabandiyar/viz/trade_analysis/TradeDashboard?publish=yes)
+
+The dashboard presents annual export value, commodity concentration, and destination concentration with interactive year filtering. The packaged workbook is available at [`dashboard/kazakhstan_eu_trade_dashboard.twbx`](dashboard/kazakhstan_eu_trade_dashboard.twbx), and [`dashboard/README.md`](dashboard/README.md) documents the complete build process.
+
+Regenerate the Tableau-ready dataset with:
+
+```bash
+python src/export_tableau_data.py
+```
+
 ## Repository structure
 
 ```text
@@ -30,6 +44,7 @@ The results are descriptive. They identify patterns and questions for further re
 │   ├── raw/            # Source FAOSTAT CSV files
 │   ├── processed/      # Cleaned and analysis-ready Parquet files
 │   └── external/       # Optional supplementary data
+├── dashboard/          # Tableau build guide and packaged workbook
 ├── docs/               # Written findings
 ├── notebooks/          # Data audits and exploratory analysis
 ├── outputs/
