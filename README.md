@@ -36,6 +36,18 @@ Regenerate the Tableau-ready dataset with:
 python src/export_tableau_data.py
 ```
 
+## R data-refresh extension
+
+The isolated [`r/`](r/) extension reimplements one small existing workflow in base R: it retrieves the official FAOSTAT production bulk file and validates Kazakhstan wheat production, harvested-area and yield records for 2018-2024. It preserves the original download locally without changing the Python, SQL or Tableau pipeline.
+
+Run it with:
+
+```bash
+Rscript r/update_kazakhstan_wheat_production.R
+```
+
+See [`r/README.md`](r/README.md) for the official source, folder structure, refresh behaviour, validation checks and limitations.
+
 ## Repository structure
 
 ```text
@@ -50,6 +62,7 @@ python src/export_tableau_data.py
 ├── outputs/
 │   ├── figures/        # Generated charts
 │   └── tables/         # Generated tables
+├── r/                   # Isolated R data-refresh workflow and documentation
 ├── sql/                # DuckDB exploration and analysis queries
 ├── src/                # Data preparation and SQL runner scripts
 ├── requirements.txt

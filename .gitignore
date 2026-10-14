@@ -29,3 +29,7 @@ build/
 
 # Logs
 *.log
+
+# Reproducible FAOSTAT bulk archive used by the R extension
+data/raw/r_faostat_production/*
+!data/raw/r_faostat_production/.gitkeep
